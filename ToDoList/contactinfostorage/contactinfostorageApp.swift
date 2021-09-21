@@ -1,15 +1,15 @@
 //
-//  ToDoListApp.swift
-//  ToDoList
+//  contactinfostorageApp.swift
+//  contactinfostorage
 //
-//  Created by Tim Randall on 21/9/21.
+//  Created by Tim Randall on 19/9/21.
 //
 
 import SwiftUI
 import CoreData
 
 @main
-struct ToDoListApp: App {
+struct contactinfostorageApp: App {
     let persistenceContainer = PersistenceController.shared
     var body: some Scene {
         WindowGroup {
