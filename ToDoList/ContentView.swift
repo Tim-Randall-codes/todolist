@@ -13,7 +13,8 @@ struct ContentView: View {
     
     @FetchRequest(
         entity: Task.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \Task.date, ascending: true )])var items: FetchedResults<Task>
+        sortDescriptors: [NSSortDescriptor(keyPath: \Task.date, ascending: true )],
+        predicate: NSPredicate(format: "completed = %d", false))var items: FetchedResults<Task>
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     
     var body: some View {
@@ -24,10 +25,51 @@ struct ContentView: View {
                 else{
                     Background(topColour: .white, bottomColour: .red)}
                 VStack{
-                    Text("hello world")
-                    TextWidget(text: "Hello")
+                    Spacer()
+                    HStack{
+                        NavigationLink(destination: AddTaskView()){
+                            Image(systemName: "plus").resizable()
+                                .frame(width: 50, height: 50)
+                        }
+                    }
+                    List { ForEach(items, id: \.self) { item in
+                        Button(action: {
+                            item.completed = true
+                        }, label: {
+                            TextWidget(text: item.words ?? "unknown")
+                       })
+                        }
+                    }
                 }
             }
+        }
+    }
+}
+
+struct AddTaskView: View {
+    @Environment(\.managedObjectContext) var managedObjectContext
+    @Environment(\.colorScheme) var colorScheme: ColorScheme
+    @State var taskEntry: String = ""
+    var body: some View {
+        ZStack{
+            if colorScheme == .dark {
+                Background(topColour: .black, bottomColour: .red)}
+            else{
+                Background(topColour: .white, bottomColour: .red)}
+        VStack {
+            TextWidget(text: "You add tasks here").padding()
+            TextField("Type in your task and press add", text: $taskEntry).padding()
+            Button(action: {
+                let newTask = Task(context: managedObjectContext)
+                newTask.completed = false
+                newTask.date = Date()
+                newTask.words = taskEntry
+                PersistenceController.shared.save()
+            }, label: {
+                TextWidget(text: "Add task").padding()
+                    .border(Color.black, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
+            })
+        }.navigationTitle("Add Task")
         }
     }
 }
@@ -46,7 +88,6 @@ struct TextWidget: View {
     var text: String
     var body: some View {
         Text(text).font(Font.system(size: 24))
-
     }
 }
 
