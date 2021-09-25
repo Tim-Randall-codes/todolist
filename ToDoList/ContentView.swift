@@ -30,17 +30,18 @@ struct ContentView: View {
                     Spacer()
                     HStack{
                         NavigationLink(destination: CompletedTaskView()){
-                            TextWidget(text: "View Completed Tasks")
+                            TextWidget(text: "View Completed Tasks").padding()
                         }
                         Spacer()
                         NavigationLink(destination: AddTaskView()){
                             Image(systemName: "plus").resizable()
-                                .frame(width: 50, height: 50)
+                                .frame(width: 50, height: 50).padding()
                         }
                     }
                     List { ForEach(items, id: \.self) { item in
                         Button(action: {
                             item.completed = true
+                            PersistenceController.shared.save()
                         }, label: {
                             TextWidget(text: item.words ?? "unknown")
                        })
@@ -71,9 +72,10 @@ struct AddTaskView: View {
                 newTask.date = Date()
                 newTask.words = taskEntry
                 PersistenceController.shared.save()
+                taskEntry = ""
             }, label: {
                 TextWidget(text: "Add Task").padding()
-                    .border(Color.black, width: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/)
+                    .border(Color.blue, width: 3).cornerRadius(8)
             })
         }.navigationTitle("Add Task")
         }
@@ -90,12 +92,18 @@ struct CompletedTaskView: View {
     let dateFormatter = DateFormatter()
     var body: some View {
         NavigationView {
-            List { ForEach(items, id: \.self) { item in
-                let dateStringHere = getDate(x: item.date!)
-                TextWidget(text: "\(dateStringHere), \(item.words ?? "unknown task")")
+            ZStack{
+                if colorScheme == .dark {
+                    Background(topColour: .black, bottomColour: .blue)}
+                else{
+                    Background(topColour: .white, bottomColour: .blue)}
+                List { ForEach(items, id: \.self) { item in
+                    let dateStringHere = getDate(x: item.date!)
+                    TextWidget(text: "\(dateStringHere), \(item.words ?? "unknown task")")
+                    }.onDelete(perform: removeItem)
                 }
             }
-        }
+        }.navigationTitle("Completed Tasks")
     }
     func getDate(x: Date) -> String {
         let dateFormatter = DateFormatter()
@@ -103,6 +111,12 @@ struct CompletedTaskView: View {
         let dateString = dateFormatter.string(from: x)
         return dateString
     }
+    func removeItem(at offsets: IndexSet) {
+        for index in offsets {
+            let itm = items[index]
+            PersistenceController.shared.delete(itm)
+            }
+        }
 }
 
 struct Background: View {
